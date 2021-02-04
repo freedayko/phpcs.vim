@@ -30,7 +30,7 @@
 "
 "                       let g:phpcs_vcs_type = 'svn'
 "
-"                       Currently only support 'svn' or 'cvs'.
+"                       Currently only support 'svn', 'cvs' or 'git'.
 "
 "                  3. Set the max allowed output lines. 
 "                     This is useful in case there are too many errors and memory is running out.
@@ -40,6 +40,11 @@
 "                       or
 "
 "                       let g:phpcs_max_output = 2000 " Output limited to 2000 lines
+"
+"                  4. Set phpcs path
+"                     This is useful in case for using phpcs from docker
+"
+"                       let g:phpcs_path = 'docker run --rm -i --volume "$(pwd):$(pwd):rw" -w "$(pwd)" -u $(id -u):$(id -g) phpqa/phpcs phpcs'
 "------------------------------------------------------------------------------
 "  Modification History:
 "  1.1  Fixed the issue that when minibufexpl plugin enabled, the window operation is totally wrong in DIFF mode. 
@@ -67,12 +72,18 @@ endif
 " The VCS supported
 let s:vcs_supported = {
             \'svn' : "svn diff | grep '^Index' | cut -f2 -d' '",
-            \'cvs' : "cvs status 2>/dev/null | grep 'File:' |egrep 'Merge|Modified'"
+            \'cvs' : "cvs status 2>/dev/null | grep 'File:' |egrep 'Merge|Modified'",
+            \'git' : "git diff --name-only",
             \}
 
-" If VCS type not set, use 'svn' as default
+" If VCS type not set, use 'git' as default
 if !exists('g:phpcs_vcs_type')
-    let g:phpcs_vcs_type = 'svn'
+    let g:phpcs_vcs_type = 'git'
+endif
+
+" If phpcs path is not set we run just phpcs command line
+if !exists('g:phpcs_path')
+    let g:phpcs_path = 'phpcs'
 endif
 
 if has_key(s:vcs_supported, g:phpcs_vcs_type)
@@ -94,7 +105,7 @@ function! s:runPhpcsCmd(std, filename, filters)
     " strip all whitespace
     let std = substitute(a:std, "\\s", "", "g")
 
-    let phpcs_output = system('phpcs --report=emacs --standard=' . std . ' ' . a:filename)
+    let phpcs_output = system(g:phpcs_path . ' --report=emacs --standard=' . std . ' ' . a:filename)
     let phpcs_result = split(phpcs_output, "\n")
 
     " run callback filters

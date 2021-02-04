@@ -21,6 +21,11 @@ To use this plugin, you must have these global variables set:
       or
       let g:phpcs_max_output = 2000 " Output limited to 2000 line
 
+4. Set phpcs path
+     This is useful in case for using phpcs from docker
+
+      let g:phpcs_path = 'docker run --rm -i --volume "$(pwd):$(pwd):rw" -w "$(pwd)" -u $(id -u):$(id -g) phpqa/phpcs phpcs'
+
 Following command are provided:
 
  :Phpcs          " Check the current file, if not in DIFF mode.
